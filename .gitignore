@@ -364,3 +364,7 @@ FodyWeavers.xsd
 
 /Discord Stream Notify Bot/DbTrackerLog.txt
 DataBase.db
+/Youtube Stream Title Convert/Data/OtherVideoDb.db
+/Youtube Stream Title Convert/Data/NotVTuberVideoDb.db
+/Youtube Stream Title Convert/Data/NijisanjiVideoDb.db
+/Youtube Stream Title Convert/Data/HoloVideoDb.db

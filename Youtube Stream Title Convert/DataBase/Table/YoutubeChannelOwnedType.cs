@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Youtube_Stream_Title_Convert.DataBase.Table
+namespace Youtube_Stream_Title_Convert.Table
 {
     public class YoutubeChannelOwnedType
     {
@@ -8,6 +8,6 @@ namespace Youtube_Stream_Title_Convert.DataBase.Table
         [Key]
         public string ChannelId { get; set; }
         public string ChannelTitle { get; set; } = null;
-        public StreamVideo.YTChannelType ChannelType { get; set; } = StreamVideo.YTChannelType.Other;
+        public Video.YTChannelType ChannelType { get; set; } = Video.YTChannelType.Other;
     }
 }

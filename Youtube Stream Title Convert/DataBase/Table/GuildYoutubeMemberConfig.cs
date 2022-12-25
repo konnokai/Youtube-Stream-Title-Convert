@@ -1,4 +1,4 @@
-﻿namespace Youtube_Stream_Title_Convert.DataBase.Table
+﻿namespace Youtube_Stream_Title_Convert.Table
 {
     public class GuildYoutubeMemberConfig : DbEntity
     {

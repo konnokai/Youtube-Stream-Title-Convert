@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Youtube_Stream_Title_Convert.DataBase.Table
+namespace Youtube_Stream_Title_Convert.Table
 {
     class RecordChannel 
     {

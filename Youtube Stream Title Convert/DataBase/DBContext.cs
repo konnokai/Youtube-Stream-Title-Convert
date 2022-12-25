@@ -1,20 +1,15 @@
-﻿#pragma warning disable CS8618 // 退出建構函式時，不可為 Null 的欄位必須包含非 Null 值。請考慮宣告為可為 Null。
-
-using Youtube_Stream_Title_Convert.DataBase.Table;
+﻿using Youtube_Stream_Title_Convert.Table;
 using Microsoft.EntityFrameworkCore;
 
-namespace Youtube_Stream_Title_Convert.DataBase
+namespace Youtube_Stream_Title_Convert
 {
     public class DBContext : DbContext
     {
         public DbSet<GuildConfig> GuildConfig { get; set; }
         public DbSet<GuildYoutubeMemberConfig> GuildYoutubeMemberConfig { get; set; }
         public DbSet<BannerChange> BannerChange { get; set; }
-        public DbSet<HoloStreamVideo> HoloStreamVideo { get; set; }
-        public DbSet<NijisanjiStreamVideo> NijisanjiStreamVideo { get; set; }
         public DbSet<NoticeTwitterSpaceChannel> NoticeTwitterSpaceChannel { get; set; }
         public DbSet<NoticeYoutubeStreamChannel> NoticeYoutubeStreamChannel { get; set; }
-        public DbSet<OtherStreamVideo> OtherStreamVideo { get; set; }
         public DbSet<RecordYoutubeChannel> RecordYoutubeChannel { get; set; }
         public DbSet<TwitterSpace> TwitterSpace { get; set; }
         public DbSet<TwitterSpaecSpider> TwitterSpaecSpider { get; set; }
@@ -23,7 +18,11 @@ namespace Youtube_Stream_Title_Convert.DataBase
         public DbSet<YoutubeMemberCheck> YoutubeMemberCheck { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
-            => options.UseSqlite($"Data Source={Program.GetDataFilePath("DataBase.db")}");
+            => options.UseSqlite($"Data Source={Program.GetDataFilePath("DataBase.db")}")
+#if DEBUG
+            //.LogTo((act) => System.IO.File.AppendAllText("DbTrackerLog.txt", act), Microsoft.Extensions.Logging.LogLevel.Information)
+#endif
+            .EnableSensitiveDataLogging();
 
         public static DBContext GetDbContext()
         {

@@ -1,7 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using Youtube_Stream_Title_Convert.DataBase;
-using Youtube_Stream_Title_Convert.DataBase.Table;
+using Youtube_Stream_Title_Convert.Table;
 
 namespace Youtube_Stream_Title_Convert
 {
@@ -9,9 +8,21 @@ namespace Youtube_Stream_Title_Convert
     {
         static void Main(string[] args)
         {
-            if (!File.Exists(GetDataFilePath("DataBase.db")))
+            if (!File.Exists(GetDataFilePath("HoloVideoDb.db")))
             {
-                Log.Error($"無資料庫，請將資料庫放到 \"{GetDataFilePath("DataBase.db")}\"");
+                Log.Error($"無資料庫，請將資料庫放到 \"{GetDataFilePath("HoloVideoDb.db")}\"");
+                Console.ReadKey();
+                return;
+            }
+            if (!File.Exists(GetDataFilePath("NijisanjiVideoDb.db")))
+            {
+                Log.Error($"無資料庫，請將資料庫放到 \"{GetDataFilePath("NijisanjiVideoDb.db")}\"");
+                Console.ReadKey();
+                return;
+            }
+            if (!File.Exists(GetDataFilePath("NotVTuberVideoDb.db")))
+            {
+                Log.Error($"無資料庫，請將資料庫放到 \"{GetDataFilePath("NotVTuberVideoDb.db")}\"");
                 Console.ReadKey();
                 return;
             }
@@ -31,8 +42,11 @@ namespace Youtube_Stream_Title_Convert
                 if (!Directory.Exists(path))
                     continue;                
             } while (string.IsNullOrEmpty(path));
+            
 
-            using DBContext dbContext = DBContext.GetDbContext();
+            using HoloVideoContext holoVideoContext   = HoloVideoContext.GetDbContext();
+            using NijisanjiVideoContext nijisanjiVideoContext = NijisanjiVideoContext.GetDbContext();
+            using OtherVideoContext otherVideoContext = OtherVideoContext.GetDbContext();
 
             Regex regex = new Regex(@"youtube_(?'ChannelId'[\w\-\\_]{24})_(?'Date'\d{8})_(?'Time'\d{6})_(?'VideoId'[\w\-\\_]{11})\.(?'Ext'[\w]{2,4})");
             var fileList = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly).ToList();
@@ -43,14 +57,14 @@ namespace Youtube_Stream_Title_Convert
                     continue;
 
                 string videoId = regexResult.Groups["VideoId"].ToString();
-                StreamVideo? streamVideo = null;
+                Video? streamVideo = null;
 
-                if (dbContext.HoloStreamVideo.Any((x) => x.VideoId == videoId))
-                    streamVideo = dbContext.HoloStreamVideo.First((x) => x.VideoId == videoId);
-                else if (dbContext.NijisanjiStreamVideo.Any((x) => x.VideoId == videoId))
-                    streamVideo = dbContext.NijisanjiStreamVideo.First((x) => x.VideoId == videoId);
-                else if (dbContext.OtherStreamVideo.Any((x) => x.VideoId == videoId))
-                    streamVideo = dbContext.OtherStreamVideo.First((x) => x.VideoId == videoId);
+                if (holoVideoContext.Video.Any((x) => x.VideoId == videoId))
+                    streamVideo = holoVideoContext.Video.First((x) => x.VideoId == videoId);
+                else if (nijisanjiVideoContext.Video.Any((x) => x.VideoId == videoId))
+                    streamVideo = nijisanjiVideoContext.Video.First((x) => x.VideoId == videoId);
+                else if (otherVideoContext.Video.Any((x) => x.VideoId == videoId))
+                    streamVideo = otherVideoContext.Video.First((x) => x.VideoId == videoId);
 
                 if (streamVideo == null)
                 {
@@ -87,7 +101,7 @@ namespace Youtube_Stream_Title_Convert
         }
 
         public static string GetDataFilePath(string fileName)
-            => $"{AppDomain.CurrentDomain.BaseDirectory}{fileName}";
+            => $"{AppDomain.CurrentDomain.BaseDirectory}Data\\{fileName}";
 
         public static string GetPlatformSlash()
             => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "\\" : "/";
