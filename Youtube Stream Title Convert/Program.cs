@@ -40,11 +40,10 @@ namespace Youtube_Stream_Title_Convert
                     continue;
 
                 if (!Directory.Exists(path))
-                    continue;                
+                    continue;
             } while (string.IsNullOrEmpty(path));
-            
 
-            using HoloVideoContext holoVideoContext   = HoloVideoContext.GetDbContext();
+            using HoloVideoContext holoVideoContext = HoloVideoContext.GetDbContext();
             using NijisanjiVideoContext nijisanjiVideoContext = NijisanjiVideoContext.GetDbContext();
             using OtherVideoContext otherVideoContext = OtherVideoContext.GetDbContext();
 
@@ -72,7 +71,7 @@ namespace Youtube_Stream_Title_Convert
                     continue;
                 }
 
-                string fileName = $"[{regexResult.Groups["Date"]}] {streamVideo.VideoTitle} - {videoId}.{regexResult.Groups["Ext"]}";
+                string fileName = $"[{regexResult.Groups["Date"]}-{regexResult.Groups["Time"]}] {streamVideo.VideoTitle} - {videoId}.{regexResult.Groups["Ext"]}";
 
                 foreach (char c in Path.GetInvalidFileNameChars())
                 {
