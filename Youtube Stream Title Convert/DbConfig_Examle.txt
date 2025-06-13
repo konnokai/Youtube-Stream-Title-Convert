@@ -1,0 +1,1 @@
+﻿Server=localhost;Port=3306;User Id=stream_bot;Password=Ch@nge_Me;Database=discord_stream_bot

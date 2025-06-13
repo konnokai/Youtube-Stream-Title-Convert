@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Youtube_Stream_Title_Convert.Table
+namespace Discord_Stream_Notify_Bot.DataBase.Table
 {
     public class Video
     {
         public enum YTChannelType
         {
-            Holo, Nijisanji, Other, NotVTuber
+            Holo, Nijisanji, Other, NonApproved
         }
 
         public string ChannelId { get; set; }
@@ -16,6 +16,7 @@ namespace Youtube_Stream_Title_Convert.Table
         public string VideoTitle { get; set; }
         public DateTime ScheduledStartTime { get; set; }
         public YTChannelType ChannelType { get; set; }
+        public bool IsPrivate { get; set; } = false;
 
         public override int GetHashCode()
         {

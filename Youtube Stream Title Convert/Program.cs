@@ -1,6 +1,8 @@
-﻿using System.Runtime.InteropServices;
+﻿using Discord_Stream_Notify_Bot.DataBase;
+using Discord_Stream_Notify_Bot.DataBase.Table;
+using Microsoft.EntityFrameworkCore;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using Youtube_Stream_Title_Convert.Table;
 
 namespace Youtube_Stream_Title_Convert
 {
@@ -8,26 +10,16 @@ namespace Youtube_Stream_Title_Convert
     {
         static void Main(string[] args)
         {
-            if (!File.Exists(GetDataFilePath("HoloVideoDb.db")))
+            Console.OutputEncoding = System.Text.Encoding.Unicode;
+
+            if (!File.Exists("DbConfig.txt"))
             {
-                Log.Error($"無資料庫，請將資料庫放到 \"{GetDataFilePath("HoloVideoDb.db")}\"");
-                Console.ReadKey();
-                return;
-            }
-            if (!File.Exists(GetDataFilePath("NijisanjiVideoDb.db")))
-            {
-                Log.Error($"無資料庫，請將資料庫放到 \"{GetDataFilePath("NijisanjiVideoDb.db")}\"");
-                Console.ReadKey();
-                return;
-            }
-            if (!File.Exists(GetDataFilePath("NotVTuberVideoDb.db")))
-            {
-                Log.Error($"無資料庫，請將資料庫放到 \"{GetDataFilePath("NotVTuberVideoDb.db")}\"");
+                Log.Error("DbConfig.txt 檔案不存在，請先建立此檔案並設定資料庫連線字串。");
                 Console.ReadKey();
                 return;
             }
 
-            Console.OutputEncoding = System.Text.Encoding.Unicode;
+            var dbService = new MainDbService(File.ReadAllText("DbConfig.txt").Trim());
 
             string? path;
             do
@@ -43,11 +35,7 @@ namespace Youtube_Stream_Title_Convert
                     continue;
             } while (string.IsNullOrEmpty(path));
 
-            using HoloVideoContext holoVideoContext = HoloVideoContext.GetDbContext();
-            using NijisanjiVideoContext nijisanjiVideoContext = NijisanjiVideoContext.GetDbContext();
-            using OtherVideoContext otherVideoContext = OtherVideoContext.GetDbContext();
-
-            Regex regex = new Regex(@"youtube_(?'ChannelId'[\w\-\\_]{24})_(?'Date'\d{8})_(?'Time'\d{6})_(?'VideoId'[\w\-\\_]{11})\.(?'Ext'[\w]{2,4})");
+            var regex = new Regex(@"youtube_(?'ChannelId'[\w\-\\_]{24})_(?'Date'\d{8})_(?'Time'\d{6})_(?'VideoId'[\w\-\\_]{11})\.(?'Ext'[\w]{2,4})");
             var fileList = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly).ToList();
             foreach (var item in fileList)
             {
@@ -55,17 +43,27 @@ namespace Youtube_Stream_Title_Convert
                 if (!regexResult.Success)
                     continue;
 
+                using var db = dbService.GetDbContext();
                 string videoId = regexResult.Groups["VideoId"].ToString();
-                Video? streamVideo = null;
+                Video streamVideo;
 
-                if (holoVideoContext.Video.Any((x) => x.VideoId == videoId))
-                    streamVideo = holoVideoContext.Video.First((x) => x.VideoId == videoId);
-                else if (nijisanjiVideoContext.Video.Any((x) => x.VideoId == videoId))
-                    streamVideo = nijisanjiVideoContext.Video.First((x) => x.VideoId == videoId);
-                else if (otherVideoContext.Video.Any((x) => x.VideoId == videoId))
-                    streamVideo = otherVideoContext.Video.First((x) => x.VideoId == videoId);
-
-                if (streamVideo == null)
+                if (db.HoloVideos.AsNoTracking().Any((x) => x.VideoId == videoId))
+                {
+                    streamVideo = db.HoloVideos.AsNoTracking().First((x) => x.VideoId == videoId);
+                }
+                else if (db.NijisanjiVideos.AsNoTracking().Any((x) => x.VideoId == videoId))
+                {
+                    streamVideo = db.NijisanjiVideos.AsNoTracking().First((x) => x.VideoId == videoId);
+                }
+                else if (db.OtherVideos.AsNoTracking().Any((x) => x.VideoId == videoId))
+                {
+                    streamVideo = db.OtherVideos.AsNoTracking().First((x) => x.VideoId == videoId);
+                }
+                else if (db.NonApprovedVideos.AsNoTracking().Any((x) => x.VideoId == videoId))
+                {
+                    streamVideo = db.NonApprovedVideos.AsNoTracking().First((x) => x.VideoId == videoId);
+                }
+                else
                 {
                     Log.Error($"{item} 無對應的資料!");
                     continue;
@@ -78,7 +76,7 @@ namespace Youtube_Stream_Title_Convert
                     fileName = fileName.Replace(c, '_');
                 }
 
-                if (fileName.Length > 245)
+                if ($"{path}\\{fileName}".Length > 120)
                 {
                     Log.Error($"{item} => {fileName}: 檔名過長");
                     continue;
